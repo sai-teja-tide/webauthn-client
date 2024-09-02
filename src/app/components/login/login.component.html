@@ -1,3 +1,16 @@
-<p>login works!</p>
+<main>
+  <mat-form-field>
+    <mat-label>User Name</mat-label>
+    <input
+      matInput
+      placeholder="userName"
+      [formControl]="usernameFromControl"
+    />
+  </mat-form-field>
 
-Not yet registered? <a href="./register"> Click here to register </a>
+  <button mat-raised-button (click)="loginClicked()">Login</button>
+
+  <span>
+    Not yet registered? <a href="./register"> Click here to register </a>
+  </span>
+</main>

@@ -40,8 +40,6 @@ export class RegisterComponent {
   constructor(private _appService: AppService, private _router: Router) {}
 
   public registerClicked() {
-    console.log(this.registerFormGroup.value);
-
     const { userName, name } = this.registerFormGroup.value;
 
     if (userName && name) {
@@ -52,16 +50,15 @@ export class RegisterComponent {
           switchMap((publicKey) =>
             from(navigator.credentials.create({ publicKey }))
           ),
-          filter(val => !!val),
+          filter((val) => !!val),
           map((val) => publicKeyCredentialToJSON(val)),
-          switchMap((val) => this._appService.sendWebAuthnResponse(val)),
-          catchError((err) => {
-            console.log(err);
-            return err;
-          })
+          switchMap((val) => this._appService.sendWebAuthnResponse(val))
         )
-        .subscribe((val) => {
-          this._router.navigate(['/success']);
+        .subscribe({
+          next: () => this._router.navigate(['/success']),
+          error: (error) => {
+            return error;
+          },
         });
     } else {
       console.log('Please enter valid details');
