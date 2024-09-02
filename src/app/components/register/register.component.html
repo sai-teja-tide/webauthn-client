@@ -1,0 +1,23 @@
+<main>
+  <form [formGroup]="registerFormGroup">
+    <mat-form-field>
+      <mat-label>User Name</mat-label>
+      <input matInput placeholder="userName" formControlName="userName" />
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Name</mat-label>
+      <input matInput placeholder="name" formControlName="name" />
+    </mat-form-field>
+
+    <button
+      mat-raised-button
+      (click)="registerClicked()"
+      [disabled]="registerFormGroup.disabled"
+    >
+      Register
+    </button>
+
+    <span> Registered already? <a href="/login">Login</a></span>
+  </form>
+</main>

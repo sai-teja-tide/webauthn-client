@@ -1,0 +1,11 @@
+main {
+  form {
+    max-width: 320px;
+    display: flex;
+    flex-direction: column;
+    
+    span {
+        margin-top: 16px;
+    }
+  }
+}
