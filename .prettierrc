@@ -1,0 +1,45 @@
+{
+  "printWidth": 140,
+  "singleQuote": true,
+  "useTabs": false,
+  "tabWidth": 2,
+  "semi": true,
+  "bracketSpacing": true,
+  "trailingComma": "none",
+  "arrowParens": "avoid",
+  "importOrder": [
+    "^@angular/(.*)$",
+    "@ngrx",
+    "@twa",
+    "^rxjs",
+    "<THIRD_PARTY_MODULES>",
+    "environment",
+    "guard",
+    ".module",
+    ".interceptor",
+    "service",
+    "state",
+    ".actions",
+    ".selectors",
+    ".reducer",
+    ".effects",
+    ".data",
+    "interface",
+    "enum",
+    "model",
+    "component"
+  ],
+  "importOrderSeparation": true,
+  "importOrderSortSpecifiers": true,
+  "importOrderGroupNamespaceSpecifiers": true,
+  "importOrderCaseInsensitive": true,
+  "importOrderParserPlugins": ["typescript", "decorators-legacy"],
+  "overrides": [
+    {
+      "files": "*.html",
+      "options": {
+        "parser": "angular"
+      }
+    }
+  ]
+}
