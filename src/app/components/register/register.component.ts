@@ -11,7 +11,7 @@ import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { AppService } from '../../services/app.service';
 import {
-  preformatMakeCredReq,
+  preformatMakeCredentialRequest,
   publicKeyCredentialToJSON,
 } from '../../helpers/app.helpers';
 import { catchError, filter, from, map, switchMap } from 'rxjs';
@@ -37,25 +37,28 @@ export class RegisterComponent {
     userName: new FormControl('', [Validators.required]),
   });
 
-  constructor(private _appService: AppService, private _router: Router) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly router: Router
+  ) {}
 
-  public registerClicked() {
+  public registerClicked(): void {
     const { userName, name } = this.registerFormGroup.value;
 
     if (userName && name) {
-      this._appService
+      this.appService
         .register({ name, username: userName })
         .pipe(
-          map((val) => preformatMakeCredReq(val)),
+          map((response) => preformatMakeCredentialRequest(response)),
           switchMap((publicKey) =>
             from(navigator.credentials.create({ publicKey }))
           ),
-          filter((val) => !!val),
-          map((val) => publicKeyCredentialToJSON(val)),
-          switchMap((val) => this._appService.sendWebAuthnResponse(val))
+          filter((credential) => !!credential),
+          map((credential) => publicKeyCredentialToJSON(credential)),
+          switchMap((credentialJson) => this.appService.sendWebAuthnResponse(credentialJson))
         )
         .subscribe({
-          next: () => this._router.navigate(['/success']),
+          next: () => this.router.navigate(['/success']),
           error: (error) => {
             return error;
           },

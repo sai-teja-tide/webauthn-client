@@ -8,21 +8,39 @@ import {IRecoveryData, IRecoveryResponse} from "../models/app.interface";
 })
 export class WebauthnService {
 
-  private API_V4_URL = 'https://api.wip-tideplatform.uk/api/v4/user-management/webauthn'
-  private httpClient = inject(HttpClient);
+  private readonly API_V4_BASE_URL = 'https://api.wip-tideplatform.uk/api/v4/user-management/webauthn';
+  private readonly httpClient = inject(HttpClient);
 
-  public recovery(code: string, userId: string): Observable<IRecoveryData> {
-
-    let headers = new HttpHeaders({
+  public getRecoveryChallenge(recoveryCode: string, userId: string): Observable<IRecoveryData> {
+    const headers = new HttpHeaders({
       'Content-Type': 'application/vnd.tide.iam.webauthn-recovery+json;version=1',
       Accept: 'application/vnd.tide.iam.webauthn-recovery+json;version=1'
     });
 
-    return this.httpClient.post<IRecoveryResponse>(`${this.API_V4_URL}/recovery`, {
+    return this.httpClient.post<IRecoveryResponse>(`${this.API_V4_BASE_URL}/recovery`, {
       data: {
-        code,
+        code: recoveryCode,
         userId
       }
-    }, {headers}).pipe(map(res => res.data));
+    }, { headers }).pipe(map(response => response.data));
+  }
+
+  public registerCredential(
+    credentialId: string,
+    clientDataJSON: string,
+    attestationObject: string
+  ): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/vnd.tide.iam.webauthn-register-credentials+json;version=1',
+      Accept: 'application/vnd.tide.iam.webauthn-register-credentials+json;version=1'
+    });
+
+    return this.httpClient.post(`${this.API_V4_BASE_URL}/credential`, {
+      data: {
+        credentialId,
+        clientDataJSON,
+        attestationObject
+      }
+    }, { headers });
   }
 }

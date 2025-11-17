@@ -11,7 +11,7 @@ import {
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import {
-  preformatGetAssertReq,
+  preformatGetAssertionRequest,
   publicKeyCredentialToJSON,
 } from '../../helpers/app.helpers';
 import { catchError, from, map, switchMap } from 'rxjs';
@@ -30,26 +30,29 @@ import { catchError, from, map, switchMap } from 'rxjs';
   styleUrl: './login.component.scss',
 })
 export class LoginComponent {
-  usernameFromControl = new FormControl('', [Validators.required]);
+  usernameFormControl = new FormControl('', [Validators.required]);
 
-  constructor(private _router: Router, private _appService: AppService) {}
+  constructor(
+    private readonly router: Router,
+    private readonly appService: AppService
+  ) {}
 
   public loginClicked(): void {
-    const username = this.usernameFromControl.value;
+    const username = this.usernameFormControl.value;
 
     if (username) {
-      this._appService
+      this.appService
         .login(username)
         .pipe(
-          map((resp) => preformatGetAssertReq(resp)),
+          map((response) => preformatGetAssertionRequest(response)),
           switchMap((publicKey) =>
             from(navigator.credentials.get({ publicKey }))
           ),
-          map((val) => publicKeyCredentialToJSON(val)),
-          switchMap((val) => this._appService.sendWebAuthnResponse(val))
+          map((credential) => publicKeyCredentialToJSON(credential)),
+          switchMap((credentialJson) => this.appService.sendWebAuthnResponse(credentialJson))
         )
         .subscribe({
-          next: () => this._router.navigate(['/success']),
+          next: () => this.router.navigate(['/success']),
           error: (error) => {
             return error;
           },

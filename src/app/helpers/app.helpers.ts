@@ -1,54 +1,54 @@
 import { decode, encode } from './base64url.helpers';
 
 export function publicKeyCredentialToJSON(
-  pubKeyCred: Array<any> | ArrayBuffer | Object | any
+  publicKeyCredential: Array<any> | ArrayBuffer | Object | any
 ): any {
-  if (pubKeyCred instanceof Array) {
-    let arr = [];
-    for (let i of pubKeyCred) arr.push(publicKeyCredentialToJSON(i));
-
-    return arr;
-  }
-
-  if (pubKeyCred instanceof ArrayBuffer) {
-    return encode(pubKeyCred);
-  }
-
-  if (pubKeyCred instanceof Object) {
-    let obj: any = {};
-
-    for (let key in pubKeyCred) {
-      obj[key] = publicKeyCredentialToJSON(pubKeyCred[key]);
+  if (publicKeyCredential instanceof Array) {
+    const jsonArray = [];
+    for (const arrayItem of publicKeyCredential) {
+      jsonArray.push(publicKeyCredentialToJSON(arrayItem));
     }
 
-    return obj;
+    return jsonArray;
   }
 
-  return pubKeyCred;
+  if (publicKeyCredential instanceof ArrayBuffer) {
+    return encode(publicKeyCredential);
+  }
+
+  if (publicKeyCredential instanceof Object) {
+    const jsonObject: any = {};
+
+    for (const propertyKey in publicKeyCredential) {
+      jsonObject[propertyKey] = publicKeyCredentialToJSON(publicKeyCredential[propertyKey]);
+    }
+
+    return jsonObject;
+  }
+
+  return publicKeyCredential;
 }
 
-export function generateRandomBuffer(len: number) {
-  len = len || 32;
-
-  let randomBuffer = new Uint8Array(len);
+export function generateRandomBuffer(bufferLength: number = 32): Uint8Array {
+  const randomBuffer = new Uint8Array(bufferLength);
   window.crypto.getRandomValues(randomBuffer);
 
   return randomBuffer;
 }
 
-export function preformatMakeCredReq(makeCredReq: any) {
-  makeCredReq.challenge = decode(makeCredReq.challenge);
-  makeCredReq.user.id = decode(makeCredReq.user.id);
+export function preformatMakeCredentialRequest(makeCredentialRequest: any): any {
+  makeCredentialRequest.challenge = decode(makeCredentialRequest.challenge);
+  makeCredentialRequest.user.id = decode(makeCredentialRequest.user.id);
 
-  return makeCredReq;
+  return makeCredentialRequest;
 }
 
-export function preformatGetAssertReq(getAssert: any) {
-  getAssert.challenge = decode(getAssert.challenge);
+export function preformatGetAssertionRequest(getAssertionRequest: any): any {
+  getAssertionRequest.challenge = decode(getAssertionRequest.challenge);
 
-  for (let allowCred of getAssert.allowCredentials) {
-    allowCred.id = decode(allowCred.id);
+  for (const allowedCredential of getAssertionRequest.allowCredentials) {
+    allowedCredential.id = decode(allowedCredential.id);
   }
 
-  return getAssert;
+  return getAssertionRequest;
 }

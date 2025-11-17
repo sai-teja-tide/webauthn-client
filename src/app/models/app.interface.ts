@@ -4,13 +4,13 @@ export interface IRegisterPayload {
 }
 
 export interface IRecoveryResponse {
-  "data": IRecoveryData
+  data: IRecoveryData;
 }
 
 export interface IRecoveryData {
-  "challenge": string,
-  "timeout": number,
-  "credentialId": string
+  challenge: string;
+  timeout: number;
+  credentialId: string;
 }
 
-export const userId = "2201479d-f073-4de0-8147-9df073cde0ba"
+export const DEFAULT_USER_ID = "2201479d-f073-4de0-8147-9df073cde0ba";

@@ -1,54 +1,47 @@
-let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+const BASE64URL_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
 
 // Use a lookup table to find the index.
-let lookup = new Uint8Array(256);
-for (let i = 0; i < chars.length; i++) {
-  lookup[chars.charCodeAt(i)] = i;
+const BASE64URL_LOOKUP_TABLE = new Uint8Array(256);
+for (let charIndex = 0; charIndex < BASE64URL_CHARS.length; charIndex++) {
+  BASE64URL_LOOKUP_TABLE[BASE64URL_CHARS.charCodeAt(charIndex)] = charIndex;
 }
 
-export function encode(arraybuffer: ArrayBuffer): string {
-  let bytes = new Uint8Array(arraybuffer),
-    i,
-    len = bytes.length,
-    base64url = '';
+export function encode(arrayBuffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(arrayBuffer);
+  const byteLength = bytes.length;
+  let base64UrlEncoded = '';
 
-  for (i = 0; i < len; i += 3) {
-    base64url += chars[bytes[i] >> 2];
-    base64url += chars[((bytes[i] & 3) << 4) | (bytes[i + 1] >> 4)];
-    base64url += chars[((bytes[i + 1] & 15) << 2) | (bytes[i + 2] >> 6)];
-    base64url += chars[bytes[i + 2] & 63];
+  for (let byteIndex = 0; byteIndex < byteLength; byteIndex += 3) {
+    base64UrlEncoded += BASE64URL_CHARS[bytes[byteIndex] >> 2];
+    base64UrlEncoded += BASE64URL_CHARS[((bytes[byteIndex] & 3) << 4) | (bytes[byteIndex + 1] >> 4)];
+    base64UrlEncoded += BASE64URL_CHARS[((bytes[byteIndex + 1] & 15) << 2) | (bytes[byteIndex + 2] >> 6)];
+    base64UrlEncoded += BASE64URL_CHARS[bytes[byteIndex + 2] & 63];
   }
 
-  if (len % 3 === 2) {
-    base64url = base64url.substring(0, base64url.length - 1);
-  } else if (len % 3 === 1) {
-    base64url = base64url.substring(0, base64url.length - 2);
+  if (byteLength % 3 === 2) {
+    base64UrlEncoded = base64UrlEncoded.substring(0, base64UrlEncoded.length - 1);
+  } else if (byteLength % 3 === 1) {
+    base64UrlEncoded = base64UrlEncoded.substring(0, base64UrlEncoded.length - 2);
   }
 
-  return base64url;
+  return base64UrlEncoded;
 }
 
-export function decode(base64string: string): ArrayBuffer {
-  let bufferLength = base64string.length * 0.75,
-    len = base64string.length,
-    i,
-    p = 0,
-    encoded1,
-    encoded2,
-    encoded3,
-    encoded4;
+export function decode(base64UrlString: string): ArrayBuffer {
+  const bufferLength = base64UrlString.length * 0.75;
+  const stringLength = base64UrlString.length;
+  const bytes = new Uint8Array(bufferLength);
+  let bytePosition = 0;
 
-  let bytes = new Uint8Array(bufferLength);
+  for (let charIndex = 0; charIndex < stringLength; charIndex += 4) {
+    const encodedChar1 = BASE64URL_LOOKUP_TABLE[base64UrlString.charCodeAt(charIndex)];
+    const encodedChar2 = BASE64URL_LOOKUP_TABLE[base64UrlString.charCodeAt(charIndex + 1)];
+    const encodedChar3 = BASE64URL_LOOKUP_TABLE[base64UrlString.charCodeAt(charIndex + 2)];
+    const encodedChar4 = BASE64URL_LOOKUP_TABLE[base64UrlString.charCodeAt(charIndex + 3)];
 
-  for (i = 0; i < len; i += 4) {
-    encoded1 = lookup[base64string.charCodeAt(i)];
-    encoded2 = lookup[base64string.charCodeAt(i + 1)];
-    encoded3 = lookup[base64string.charCodeAt(i + 2)];
-    encoded4 = lookup[base64string.charCodeAt(i + 3)];
-
-    bytes[p++] = (encoded1 << 2) | (encoded2 >> 4);
-    bytes[p++] = ((encoded2 & 15) << 4) | (encoded3 >> 2);
-    bytes[p++] = ((encoded3 & 3) << 6) | (encoded4 & 63);
+    bytes[bytePosition++] = (encodedChar1 << 2) | (encodedChar2 >> 4);
+    bytes[bytePosition++] = ((encodedChar2 & 15) << 4) | (encodedChar3 >> 2);
+    bytes[bytePosition++] = ((encodedChar3 & 3) << 6) | (encodedChar4 & 63);
   }
 
   return bytes.buffer;

@@ -4,10 +4,10 @@ import {MatFormFieldModule} from "@angular/material/form-field";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
 import {MatButtonModule} from "@angular/material/button";
 import {WebauthnService} from "../../../services/webauthn.service";
-import {from, switchMap, map} from "rxjs";
+import {from, switchMap} from "rxjs";
 import {decode} from "../../../helpers/base64url.helpers";
-import {userId} from "../../../models/app.interface";
 import {publicKeyCredentialToJSON} from "../../../helpers/app.helpers";
+import {IRecoveryData} from "../../../models/app.interface";
 
 @Component({
   selector: 'app-registration',
@@ -17,18 +17,20 @@ import {publicKeyCredentialToJSON} from "../../../helpers/app.helpers";
   styleUrl: './registration.component.scss'
 })
 export class RegistrationComponent {
-  codeFormControl = new FormControl();
-  webauthnService = inject(WebauthnService);
+  recoveryCodeFormControl = new FormControl();
+  private readonly webauthnService = inject(WebauthnService);
 
   public submit(): void {
+    const { code: recoveryCode, userId } = this.extractRecoveryParameters(this.recoveryCodeFormControl.value);
 
-    const {code, userId} = this.getCode(this.codeFormControl.value)
+    let recoveryData: IRecoveryData | null = null;
 
-    this.webauthnService.recovery(code, userId).pipe(
-      switchMap((pk) =>
-        from(navigator.credentials.create({
+    this.webauthnService.getRecoveryChallenge(recoveryCode, userId).pipe(
+      switchMap((recoveryResponse) => {
+        recoveryData = recoveryResponse;
+        return from(navigator.credentials.create({
           publicKey: {
-            challenge: decode(pk.challenge),
+            challenge: decode(recoveryResponse.challenge),
             user: {
               id: decode(userId),
               displayName: "suggula.teja+oaflutter@tide.co",
@@ -37,21 +39,29 @@ export class RegistrationComponent {
             rp: { id: "localhost", name: "Tide" },
             pubKeyCredParams: [{ type: "public-key", alg: -7 }]
           } as PublicKeyCredentialCreationOptions
-        })),
-      )).subscribe(val => {
-      console.log(val);
-      console.log("-----------------------");
-      console.log(publicKeyCredentialToJSON(val));
-    })
+        }));
+      })
+    ).subscribe(credential => {
+      const credentialJson = publicKeyCredentialToJSON(credential);
 
+      if (credentialJson && credentialJson.id && credentialJson.response && recoveryData) {
+        this.webauthnService.registerCredential(
+          recoveryData.credentialId,
+          credentialJson.response.clientDataJSON,
+          credentialJson.response.attestationObject
+        ).subscribe(registrationResponse => {
+          console.log(registrationResponse);
+        });
+      }
+    });
   }
 
-  public getCode(url: string): {code: string, userId: string} {
-    const urlSearchParams = new URLSearchParams(url);
+  public extractRecoveryParameters(urlString: string): { code: string; userId: string } {
+    const urlSearchParams = new URLSearchParams(urlString);
 
     return {
-     code: urlSearchParams.get("deep_link_sub1") || '',
+      code: urlSearchParams.get("deep_link_sub1") || '',
       userId: urlSearchParams.get("deep_link_sub2") || ''
-    }
+    };
   }
 }
